@@ -17,5 +17,36 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+input {
+  @apply bg-transparent border-[0.8px] border-neutral-300 px-3 py-2 rounded-md;
+}
+
+button {
+  @apply btn;
+}
+
+.btn {
+  @apply bg-foreground text-background px-3 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply bg-transparent text-foreground px-3 py-2 rounded-md border border-foreground;
+}
+
+.disabled {
+  @apply opacity-50 cursor-not-allowed pointer-events-none;
+}
+
+.product-card {
+  @apply flex flex-col justify-center items-center gap-2 w-[9em] aspect-square rounded-xl border border-gray-500 hover:border-primary transition-all p-2 cursor-pointer select-none;
+}
+
+.product-card.active {
+  @apply border-foreground;
+}
+
+.description {
+  @apply font-light text-slate-400;
 }
