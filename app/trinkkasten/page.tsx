@@ -18,6 +18,7 @@ export default async function Trinkkasten() {
             {group.name}
           </Link>
         ))}
+        WIP: Add new shop
       </div>
     </div>
   );
