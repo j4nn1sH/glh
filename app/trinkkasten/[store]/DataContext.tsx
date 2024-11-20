@@ -8,13 +8,12 @@ import { createContext, useContext, useState } from 'react';
 const DataContext = createContext<DataContextType | null>(null);
 
 export function DataProvider({
-  data,
+  products,
+  profiles,
   children,
 }: {
-  data: {
-    products: Product[];
-    profiles: Profile[];
-  };
+  products: Product[];
+  profiles: Profile[];
   children: React.ReactNode;
 }) {
   const { store } = useParams();
@@ -31,8 +30,8 @@ export function DataProvider({
   return (
     <DataContext.Provider
       value={{
-        products: data.products,
-        profiles: data.profiles,
+        products,
+        profiles,
         cart,
         setCart,
       }}
