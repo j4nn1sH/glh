@@ -217,9 +217,9 @@ export default function TrinkkastenStoreDashboard() {
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-3 max-w-3xl justify-center h-[20em]">
+      <div className="grid md:grid-cols-3 gap-3 max-w-3xl justify-center py-3">
         {/* Product List */}
-        <div className="col-span-2 flex flex-wrap justify-center gap-4 overflow-y-auto">
+        <div className="md:col-span-2 flex md:max-h-[20em] flex-wrap justify-center gap-4 overflow-y-auto">
           {products.map((product) => (
             <div
               key={product.id}
@@ -239,7 +239,7 @@ export default function TrinkkastenStoreDashboard() {
         </div>
 
         {/* Product Form */}
-        <div className="w-[16em] pt-12">
+        <div className="w-[16em] pt-8 mx-auto">
           <div className="grid grid-cols-2 gap-2">
             <input
               id="product_name"
@@ -299,7 +299,6 @@ export default function TrinkkastenStoreDashboard() {
           </div>
         </div>
       </div>
-      <hr className="my-6" />
 
       {/* <hr className="my-10 col-span-2" />
 

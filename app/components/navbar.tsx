@@ -15,7 +15,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col pb-6">
+    <div className="flex flex-col pb-4">
       <nav className="flex h-12 items-center justify-evenly">
         {navbarItems.map((item) => (
           <Link

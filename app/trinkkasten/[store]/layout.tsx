@@ -25,7 +25,7 @@ export default async function TrinkkastenStoreLayout({
 
   return (
     <div>
-      <h1 className="text-4xl font-bold font-mono text-center my-6">
+      <h1 className="text-4xl font-bold font-mono text-center">
         {(await params).store}
       </h1>
       <DataProvider
