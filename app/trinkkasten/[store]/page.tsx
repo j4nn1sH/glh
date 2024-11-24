@@ -40,7 +40,7 @@ export default function TrinkkastenStorePage() {
             key={product.id}
             onClick={() => addProduct(product)}
             className={`product-card ${
-              quantity(product) > 0 ? 'active' : ''
+              quantity(product) > 0 ? 'selected' : ''
             } hover:border-primary`}
           >
             <p>{product.name}</p>
@@ -51,20 +51,27 @@ export default function TrinkkastenStorePage() {
         ))}
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-3">
+        {/* TODO: Only show on permission */}
+        {/* <Link href={`/trinkkasten/${cart.store}/dashboard`}>
+          <button className="bg-transparent text-blue-500 border border-blue-500">
+            Dashboard
+          </button>
+        </Link> */}
         <button
-          className="btn-secondary"
+          className="secondary"
           onClick={() => setCart({ ...cart, products: [] })}
         >
           Reset
         </button>
-        <Link
-          className={`btn ${
-            cart.products.length === 0 ? 'disabled' : ''
-          }`}
-          href={`/trinkkasten/${cart.store}/select`}
-        >
-          Next
+        <Link href={`/trinkkasten/${cart.store}/select`}>
+          <button
+            className={`${
+              cart.products.length === 0 ? 'disabled' : ''
+            }`}
+          >
+            Next
+          </button>
         </Link>
       </div>
     </div>

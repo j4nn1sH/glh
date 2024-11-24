@@ -1,13 +1,24 @@
+// type Group = {
+//   name: string;
+//   leader: string;
+// };
+
 type Product = {
   id: number;
   name: string;
   price: number;
   quantity?: number;
+  active?: boolean;
 };
 
 type Profile = {
   id: number;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
 };
-export type { Product, Profile };
+
+type Store = {
+  name: string;
+  admin: string;
+};
+export type { Product, Profile, Store };

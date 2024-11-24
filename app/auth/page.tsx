@@ -10,7 +10,7 @@ export default function AuthPage() {
   );
 
   return (
-    <div className="flex flex-col gap-3 px-4 py-5 max-w-xs mx-auto mt-20 shadow-md shadow-foreground rounded-2xl ">
+    <div className="flex flex-col gap-3 max-w-xs mx-auto mt-12">
       <div
         className={`flex flex-col font-mono ${
           activeTab == 'signup' ? 'flex-row' : 'flex-col-reverse'

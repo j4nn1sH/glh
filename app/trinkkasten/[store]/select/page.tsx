@@ -30,22 +30,23 @@ export default function TrinkkastenStoreSelectPage() {
             onClick={() => handleSelect(profile)}
             className="product-card"
           >
-            {profile.firstName} {profile.lastName}
+            {profile.first_name} {profile.last_name}
           </div>
         ))}
       </div>
-      <div className="flex gap-4">
-        <Link
-          className="btn-secondary"
-          href={`/trinkkasten/${cart.store}`}
-        >
-          Back
+      <div className="flex gap-3">
+        <Link href={`/trinkkasten/${cart.store}`}>
+          <button className="secondary">Back</button>
         </Link>
-        <Link
-          className={`btn ${cart.user === null ? 'disabled' : ''}`}
-          href={`/trinkkasten/${cart.store}/checkout`}
-        >
-          Next
+        <button className="bg-transparent text-blue-500 border border-blue-500 ">
+          Divide
+        </button>
+        <Link href={`/trinkkasten/${cart.store}/checkout`}>
+          <button
+            className={`${cart.user === null ? 'disabled' : ''}`}
+          >
+            Next
+          </button>
         </Link>
       </div>
     </div>

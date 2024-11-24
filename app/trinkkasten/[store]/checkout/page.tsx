@@ -54,7 +54,7 @@ export default function Checkout() {
       <p className="description">Are you sure?</p>
       <div className="flex flex-col gap-4 my-6 text-center">
         <p className="text-lg font-semibold">
-          {cart.user?.firstName} {cart.user?.lastName}
+          {cart.user?.first_name} {cart.user?.last_name}
         </p>
         {cart.products.map((product) => (
           <p key={product.id}>
@@ -68,15 +68,12 @@ export default function Checkout() {
         </p>
       </div>
 
-      <div className="flex gap-4">
-        <Link
-          className="btn-secondary"
-          href={`/trinkkasten/${cart.store}/select`}
-        >
-          back
+      <div className="flex gap-3">
+        <Link href={`/trinkkasten/${cart.store}/select`}>
+          <button className="secondary">Back</button>
         </Link>
         <button className="btn" onClick={handleConfirm}>
-          confirm
+          Confirm
         </button>
       </div>
     </div>

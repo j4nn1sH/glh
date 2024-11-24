@@ -9,16 +9,15 @@ export default async function TrinkkastenStoreLayout({
   children: React.ReactNode;
   params: Promise<{ store: string }>;
 }) {
-  const store = (await params).store;
-
   const supabase = await createClient();
 
   const { data: products } = await supabase
     .from('products')
     .select('*')
-    .eq('soldAt', store)
+    .eq('sold_at', (await params).store)
     .eq('active', true)
     .returns<Product[]>();
+
   const { data: profiles } = await supabase
     .from('profiles')
     .select('*')
@@ -26,8 +25,8 @@ export default async function TrinkkastenStoreLayout({
 
   return (
     <div>
-      <h1 className="text-4xl font-bold font-mono text-center mt-6">
-        {store}
+      <h1 className="text-4xl font-bold font-mono text-center my-6">
+        {(await params).store}
       </h1>
       <DataProvider
         products={products || []}
