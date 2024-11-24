@@ -143,7 +143,7 @@ export default function TrinkkastenStoreDashboard() {
       price: parseFloat(formValues.price),
     };
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('products')
       .update(updatedProduct)
       .eq('id', updatedProduct.id);
