@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useData, DataContextType } from '../DataContext';
 import { createClient } from '@/utils/supabase/client';
 
@@ -10,35 +11,35 @@ export default function Checkout() {
   const { cart, setCart } = useData() as DataContextType;
   const router = useRouter();
 
-  // Redirect on invalid state
-  if (!cart.products.length) {
-    router.push(`/trinkkasten/${cart.store}`);
-  }
-  if (!cart.user) {
-    router.push(`/trinkkasten/${cart.store}/select`);
-  }
+  useEffect(() => {
+    // Redirect on invalid state
+    if (!cart.products.length) {
+      router.push(`/trinkkasten/${cart.store}`);
+    } else if (!cart.user) {
+      router.push(`/trinkkasten/${cart.store}/select`);
+    }
+  }, [cart, router]);
 
-  const total = cart.products.reduce((acc, product) => {
-    return acc + product.price * product.quantity!;
-  }, 0);
+  const total = cart.products.reduce(
+    (acc, product) => acc + product.price * product.quantity!,
+    0
+  );
 
   const handleConfirm = async () => {
-    const supabase = await createClient();
+    const supabase = createClient();
     const { error } = await supabase.from('transactions').insert({
-      amount: total,
+      amount: -total,
       user: cart.user?.id,
       store: cart.store,
-      description: cart.products
-        .map(
-          (product) =>
-            `${product.quantity}x ${
-              product.name
-            } - ${product.price.toFixed(2)}€`
-        )
-        .join(', '),
+      items: cart.products.map((product) => ({
+        quantity: product.quantity,
+        name: product.name,
+        price: product.price,
+      })), // Corrected mapping for items
     });
+
     if (error) {
-      console.error(error);
+      console.error('Error inserting transaction:', error);
     } else {
       setCart({
         store: cart.store,

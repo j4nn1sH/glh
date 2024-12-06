@@ -1,28 +1,28 @@
 'use client';
 
-import { Profile, Product } from '@/utils/definitions';
+import { Profile, Product, Store } from '@/utils/definitions';
 
-import { useParams } from 'next/dist/client/components/navigation';
 import { createContext, useContext, useState } from 'react';
 
 const DataContext = createContext<DataContextType | null>(null);
 
 export function DataProvider({
+  store,
   products,
   profiles,
   children,
 }: {
+  store: Store;
   products: Product[];
   profiles: Profile[];
   children: React.ReactNode;
 }) {
-  const { store } = useParams();
   const [cart, setCart] = useState<{
     store: string;
     products: Product[];
     user: Profile | null;
   }>({
-    store: store as string,
+    store: store.name,
     products: [],
     user: null,
   });
@@ -30,6 +30,7 @@ export function DataProvider({
   return (
     <DataContext.Provider
       value={{
+        store,
         products,
         profiles,
         cart,
@@ -46,6 +47,7 @@ export function useData() {
 }
 
 export type DataContextType = {
+  store: Store;
   products: Product[];
   profiles: Profile[];
   cart: {

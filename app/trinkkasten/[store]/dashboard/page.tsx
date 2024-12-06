@@ -1,76 +1,123 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Product, Store } from '@/utils/definitions';
+import {
+  Product,
+  Store,
+  Transaction,
+  Balance,
+} from '@/utils/definitions';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
+import Amount from '@/app/components/amount';
 
 export default function TrinkkastenStoreDashboard() {
   const [store, setStore] = useState<Store>();
+
+  // Products
   const [products, setProducts] = useState<Product[]>([]);
 
   const [selectedProduct, setSelectedProduct] =
     useState<Product | null>(null);
-  const [formValues, setFormValues] = useState({
+  const [productForm, setProductForm] = useState({
     name: '',
     price: '',
   });
+
+  // Transaction/Balances
+  const [latestTransactions, setLatestTransactions] = useState<
+    Transaction[]
+  >([]);
+  const [balances, setBalances] = useState<Balance[]>([]);
+
+  const [selectedBalance, setSelectedBalance] =
+    useState<Balance | null>(null);
+  const [amountForm, setAmountForm] = useState('');
 
   const router = useRouter();
 
   // INIT
   useEffect(() => {
-    // Initialize Supabase client
     const init = async () => {
-      const supabase = await createClient();
+      const supabase = createClient();
 
-      // Fetch USER
+      // Fetch user
       const {
         data: { user },
-        error,
+        error: userError,
       } = await supabase.auth.getUser();
 
-      if (error) {
-        console.error('Error fetching user:', error);
+      if (userError || !user) {
+        console.error('Error fetching user:', userError);
         router.push('/unauthorized');
         return;
       }
-      console.log('User: ', user!.id);
 
-      // Fetch STORE
-      const storeResponse = await supabase
+      // Fetch store
+      const { data: store, error: storeError } = await supabase
         .from('stores')
         .select('*')
         .single();
-      if (storeResponse.error) {
-        console.error('Error fetching store: ', storeResponse.error);
-        return;
-      }
-      const store = storeResponse.data;
-
-      // Check admin privileges
-      if (!user || user.id !== store.admin) {
+      if (storeError || !store) {
+        console.error('Error fetching store:', storeError);
         router.push('/unauthorized');
         return;
       }
 
-      setStore(storeResponse.data);
-      console.log('Store: ', store);
-
-      // Fetch PRODUCTS
-      const productsResponse = await supabase
-        .from('products')
-        .select('*')
-        .eq('sold_at', store.name)
-        .returns<Product[]>();
-      if (productsResponse.error) {
-        console.error(
-          'Error fetching products: ',
-          productsResponse.error
-        );
+      // Check admin privileges
+      if (user.id !== store.admin) {
+        router.push('/unauthorized');
         return;
       }
-      setProducts(productsResponse.data);
+      setStore(store);
+
+      // setPaypalForm(store.paypal_link);
+
+      // Fetch products
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('sold_at', store.name);
+
+      if (productsError) {
+        console.error('Error fetching products:', productsError);
+      } else {
+        setProducts(products || []);
+      }
+
+      // Fetch latest transactions
+      const { data: latestTransactions, error: transactionsError } =
+        await supabase
+          .from('transactions')
+          .select(
+            'id, created_at, user (id, first_name, last_name), amount, items, store'
+          )
+          .eq('store', store.name)
+          .order('created_at', { ascending: false })
+          .limit(10)
+          .returns<Transaction[]>();
+
+      if (transactionsError) {
+        console.error(
+          'Error fetching latest transactions:',
+          transactionsError
+        );
+      } else {
+        setLatestTransactions(latestTransactions || []);
+      }
+
+      // Fetch balances
+      const { data: balances, error: balancesError } =
+        await supabase.rpc('get_store_user_balances', {
+          store_name: store.name,
+        });
+
+      if (balancesError) {
+        console.error('Error fetching balances:', balancesError);
+      } else {
+        setBalances(balances || []);
+      }
     };
 
     init();
@@ -78,36 +125,26 @@ export default function TrinkkastenStoreDashboard() {
 
   // ACTIONS
   // Bind form values to selectedProduct
-  useEffect(() => {
-    if (selectedProduct) {
-      setFormValues({
-        name: selectedProduct.name,
-        price: selectedProduct.price.toFixed(2), // Ensure price is a string formatted to two decimals
-      });
-    } else {
-      setFormValues({
-        name: '',
-        price: '',
-      });
-    }
-  }, [selectedProduct]);
-
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+    if (name === 'amount') {
+      setAmountForm(value);
+    } else {
+      setProductForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   // Create
   const handleCreate = async () => {
-    if (selectedProduct || !formValues.name || !formValues.price)
+    if (selectedProduct || !productForm.name || !productForm.price)
       return;
 
     const supabase = await createClient();
     const createResponse = await supabase.from('products').insert({
-      name: formValues.name,
-      price: parseFloat(formValues.price),
+      name: productForm.name,
+      price: parseFloat(productForm.price),
       sold_at: store!.name,
       active: true,
     });
@@ -133,14 +170,14 @@ export default function TrinkkastenStoreDashboard() {
 
   // Update
   const handleUpdate = async () => {
-    if (!selectedProduct || !formValues.name || !formValues.price)
+    if (!selectedProduct || !productForm.name || !productForm.price)
       return;
 
     const supabase = await createClient();
     const updatedProduct = {
       ...selectedProduct,
-      name: formValues.name,
-      price: parseFloat(formValues.price),
+      name: productForm.name,
+      price: parseFloat(productForm.price),
     };
 
     const { error } = await supabase
@@ -215,8 +252,27 @@ export default function TrinkkastenStoreDashboard() {
     }
   };
 
+  const handleAddTransaction = async () => {
+    if (!selectedBalance || !amountForm) return;
+
+    const supabase = createClient();
+    const { error } = await supabase.from('transactions').insert({
+      user: selectedBalance.user_id,
+      amount: parseFloat(amountForm),
+      store: store?.name,
+      description: 'Admin transaction',
+    });
+
+    if (error) {
+      console.error('Error adding transaction:', error);
+    } else {
+      setAmountForm('');
+      setSelectedBalance(null);
+    }
+  };
+
   return (
-    <div>
+    <div className="pb-8">
       <div className="grid md:grid-cols-3 gap-3 max-w-3xl justify-center py-3">
         {/* Product List */}
         <div className="md:col-span-2 flex md:max-h-[20em] flex-wrap justify-center gap-4 overflow-y-auto">
@@ -246,7 +302,7 @@ export default function TrinkkastenStoreDashboard() {
               name="name"
               type="text"
               placeholder="Name..."
-              value={formValues.name}
+              value={productForm.name}
               className="col-span-2"
               onChange={handleInputChange}
               required
@@ -256,7 +312,7 @@ export default function TrinkkastenStoreDashboard() {
               name="price"
               type="text"
               placeholder="Price..."
-              value={formValues.price}
+              value={productForm.price}
               onChange={handleInputChange}
               required
             />
@@ -265,8 +321,8 @@ export default function TrinkkastenStoreDashboard() {
               <button
                 onClick={handleUpdate}
                 className={
-                  formValues.name == selectedProduct.name &&
-                  parseFloat(formValues.price) ==
+                  productForm.name == selectedProduct.name &&
+                  parseFloat(productForm.price) ==
                     selectedProduct.price
                     ? 'disabled'
                     : ''
@@ -278,7 +334,7 @@ export default function TrinkkastenStoreDashboard() {
               <button
                 onClick={handleCreate}
                 className={
-                  !formValues.name || !parseFloat(formValues.price)
+                  !productForm.name || !parseFloat(productForm.price)
                     ? 'disabled'
                     : ''
                 }
@@ -300,10 +356,107 @@ export default function TrinkkastenStoreDashboard() {
         </div>
       </div>
 
-      {/* <hr className="my-10 col-span-2" />
+      <hr className="my-10 col-span-2" />
 
-<div className="grid gap-6">
-<div>
+      <div className="grid grid-cols-2">
+        <div>
+          <h3>Balances</h3>
+          <table className="table-auto border-separate border-spacing-x-2">
+            <tbody>
+              {balances.map((balance, index) => (
+                <tr
+                  key={index}
+                  onClick={() => {
+                    if (balance != selectedBalance) {
+                      setSelectedBalance(balance);
+                    } else {
+                      setSelectedBalance(null);
+                    }
+                  }}
+                  className="cursor-pointer"
+                >
+                  <td className="text-right">
+                    {Amount(balance.total_amount)}
+                  </td>
+                  <td
+                    className={
+                      balance == selectedBalance
+                        ? 'font-bold'
+                        : 'font-extralight'
+                    }
+                  >
+                    {balance.first_name} {balance.last_name}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="mt-2 flex gap-2">
+            <input
+              id="transaction_amount"
+              name="amount"
+              type="text"
+              placeholder="Amount..."
+              value={amountForm}
+              onChange={handleInputChange}
+              required
+            />
+            <button onClick={handleAddTransaction}>Submit</button>
+          </div>
+        </div>
+      </div>
+
+      <hr className="my-10 col-span-2" />
+
+      <div>
+        <h3>Latest transactions</h3>
+        <table className="w-full border-separate border-spacing-3 text-left justify">
+          <thead>
+            <tr>
+              <th>When?</th>
+              <th>Who?</th>
+              <th className="text-center">How much?</th>
+              <th>What?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {latestTransactions.map((transaction) => (
+              <tr key={transaction.id} className="align-top">
+                <td>
+                  {format(
+                    new Date(transaction.created_at),
+                    'dd.MM. hh:mm'
+                  )}
+                </td>
+                <td>
+                  {transaction.user?.first_name}{' '}
+                  {transaction.user?.last_name}
+                </td>
+                <td className="text-center">
+                  {Amount(transaction.amount)}
+                </td>
+                <td className="max-w-[10em]">
+                  {transaction.description && (
+                    <p className="font-extralight italic">
+                      {transaction.description}
+                    </p>
+                  )}
+                  {transaction.items &&
+                    transaction.items.map((item, index) => (
+                      <p key={index}>
+                        {item.quantity}x {item.name} -{' '}
+                        {item.price.toFixed(2)}€
+                      </p>
+                    ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/*
+IGNORE THIS
 WIP: Latest transactions in your store (maybe timewise view)
         </div>
         <div>WIP: Debt leaderboard</div>

@@ -1,12 +1,37 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useData, DataContextType } from './DataContext';
 import { Product } from '@/utils/definitions';
+import { createClient } from '@/utils/supabase/client';
 
 import Link from 'next/link';
 
 export default function TrinkkastenStorePage() {
-  const { products, cart, setCart } = useData() as DataContextType;
+  const { store, products, cart, setCart } =
+    useData() as DataContextType;
+
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
+  // Fetch admin status
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const supabase = await createClient();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error('Error fetching user:', error);
+        setIsAdminUser(false);
+      } else {
+        setIsAdminUser(user?.id === store?.admin);
+      }
+    };
+
+    checkAdmin();
+  }, [store?.admin]);
 
   const addProduct = (product: Product) => {
     // Add product to cart or increase quantity
@@ -52,15 +77,19 @@ export default function TrinkkastenStorePage() {
       </div>
 
       <div className="flex gap-3">
-        {/* TODO: Only show on permission */}
-        {/* <Link href={`/trinkkasten/${cart.store}/dashboard`}>
-          <button className="bg-transparent text-blue-500 border border-blue-500">
-            Dashboard
-          </button>
-        </Link> */}
+        {isAdminUser && (
+          <Link href={`/trinkkasten/${cart.store}/dashboard`}>
+            <button className="bg-transparent text-blue-500 border border-blue-500">
+              Dashboard
+            </button>
+          </Link>
+        )}
         <button
-          className="secondary"
+          className={`secondary ${
+            cart.products.length === 0 ? 'disabled' : ''
+          }`}
           onClick={() => setCart({ ...cart, products: [] })}
+          disabled={cart.products.length === 0}
         >
           Reset
         </button>
@@ -69,6 +98,7 @@ export default function TrinkkastenStorePage() {
             className={`${
               cart.products.length === 0 ? 'disabled' : ''
             }`}
+            disabled={cart.products.length === 0}
           >
             Next
           </button>

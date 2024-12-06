@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
-import { Product, Profile } from '@/utils/definitions';
+import { Product, Profile, Store } from '@/utils/definitions';
 import { DataProvider } from './DataContext';
 
 export default async function TrinkkastenStoreLayout({
@@ -11,10 +11,18 @@ export default async function TrinkkastenStoreLayout({
 }) {
   const supabase = await createClient();
 
+  const { data: store } = await supabase
+    .from('stores')
+    .select('*')
+    .eq('name', (await params).store)
+    .single<Store>();
+
+  if (!store) console.error('Error fetching store');
+
   const { data: products } = await supabase
     .from('products')
     .select('*')
-    .eq('sold_at', (await params).store)
+    .eq('sold_at', store!.name)
     .eq('active', true)
     .returns<Product[]>();
 
@@ -26,9 +34,10 @@ export default async function TrinkkastenStoreLayout({
   return (
     <div>
       <h1 className="text-4xl font-bold font-mono text-center">
-        {(await params).store}
+        {store!.name}
       </h1>
       <DataProvider
+        store={store!}
         products={products || []}
         profiles={profiles || []}
       >

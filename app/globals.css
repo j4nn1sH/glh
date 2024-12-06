@@ -46,3 +46,7 @@ button.disabled {
 .description {
   @apply font-light text-slate-400;
 }
+
+h3 {
+  @apply text-2xl my-3
+}

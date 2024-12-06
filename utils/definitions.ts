@@ -4,7 +4,7 @@
 // };
 
 type Product = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   quantity?: number;
@@ -12,7 +12,7 @@ type Product = {
 };
 
 type Profile = {
-  id: number;
+  id: string;
   first_name: string;
   last_name: string;
 };
@@ -20,5 +20,30 @@ type Profile = {
 type Store = {
   name: string;
   admin: string;
+  paypal_link: string;
 };
-export type { Product, Profile, Store };
+
+type Transaction = {
+  id: string;
+  created_at: Date;
+  amount: number;
+  items?: Item[];
+  description?: string;
+  user: Profile; //ID
+  store: string; //ID
+};
+
+type Item = {
+  quantity: number;
+  name: string;
+  price: number;
+};
+
+type Balance = {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  total_amount: number;
+};
+
+export type { Product, Profile, Store, Transaction, Balance };
