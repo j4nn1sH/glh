@@ -260,10 +260,10 @@ export default function TrinkkastenStoreDashboard() {
   };
 
   return (
-    <div className="pb-8 max-w-3xl mx-auto">
+    <div className="pb-8 max-w-3xl mx-auto px-2">
       <div className="grid md:grid-cols-3 gap-3 max-w-3xl justify-center py-3">
         {/* Product List */}
-        <div className="md:col-span-2 flex md:max-h-[20em] flex-wrap justify-center gap-4 overflow-y-auto">
+        <div className="md:col-span-2 flex md:max-h-[20em] flex-wrap justify-center gap-4 overflow-y-auto max-h-[50vh]">
           {products.map((product) => (
             <div
               key={product.id}
@@ -349,9 +349,9 @@ export default function TrinkkastenStoreDashboard() {
       <div>
         <h3>Balances</h3>
         <p className="description">Click on a name to see more</p>
-        <div className="grid grid-cols-2 my-2">
+        <div className="grid md:grid-cols-2 my-2">
           <div>
-            <table className="table-auto border-separate border-spacing-x-2">
+            <table className="table-auto w-full border-separate border-spacing-x-2">
               <tbody>
                 {balances.map((balance, index) => (
                   <tr
@@ -381,7 +381,7 @@ export default function TrinkkastenStoreDashboard() {
             </table>
           </div>
           {selectedBalance && (
-            <div>
+            <div className="mt-6 md:mt-0">
               <h4>
                 {selectedBalance.first_name}{' '}
                 {selectedBalance.last_name}
@@ -391,7 +391,7 @@ export default function TrinkkastenStoreDashboard() {
                   id="transaction_amount"
                   name="amount"
                   type="text"
-                  placeholder="Amount..."
+                  placeholder="Add amount..."
                   value={amountForm}
                   onChange={handleInputChange}
                   required

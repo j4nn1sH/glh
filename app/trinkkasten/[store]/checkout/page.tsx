@@ -8,14 +8,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function Checkout() {
-  const { cart, setCart } = useData() as DataContextType;
+  const { profiles, cart, setCart } = useData() as DataContextType;
   const router = useRouter();
+
+  const profile = profiles.find((pred) => pred.id == cart.user_id);
 
   useEffect(() => {
     // Redirect on invalid state
     if (!cart.products.length) {
       router.push(`/trinkkasten/${cart.store}`);
-    } else if (!cart.user) {
+    } else if (!cart.user_id) {
       router.push(`/trinkkasten/${cart.store}/select`);
     }
   }, [cart, router]);
@@ -29,7 +31,7 @@ export default function Checkout() {
     const supabase = createClient();
     const { error } = await supabase.from('transactions').insert({
       amount: -total,
-      user: cart.user?.id,
+      user: cart.user_id,
       store: cart.store,
       items: cart.products.map((product) => ({
         quantity: product.quantity,
@@ -44,7 +46,7 @@ export default function Checkout() {
       setCart({
         store: cart.store,
         products: [],
-        user: null,
+        user_id: null,
       });
       router.push(`/trinkkasten/${cart.store}`);
     }
@@ -55,7 +57,7 @@ export default function Checkout() {
       <p className="description">Are you sure?</p>
       <div className="flex flex-col gap-4 my-6 text-center">
         <p className="text-lg font-semibold">
-          {cart.user?.first_name} {cart.user?.last_name}
+          {profile?.first_name} {profile?.last_name}
         </p>
         {cart.products.map((product) => (
           <p key={product.id}>

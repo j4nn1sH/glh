@@ -11,7 +11,7 @@ export default async function Trinkkasten() {
       <div className="flex flex-col gap-2 w-[10em] text-center font-semibold">
         {data?.map((store) => (
           <Link
-            className="bg-white text-background rounded-full py-3 bg-opacity-90 hover:bg-opacity-100 active:scale-x-105 duration-300"
+            className="bg-foreground text-background rounded-full py-3 bg-opacity-90 hover:bg-opacity-100 active:scale-x-105 duration-300"
             key={store.name}
             href={`/trinkkasten/${store.name}`}
           >

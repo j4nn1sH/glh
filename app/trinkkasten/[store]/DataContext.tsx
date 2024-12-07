@@ -23,11 +23,11 @@ export function DataProvider({
   const [cart, setCart] = useState<{
     store: string;
     products: Product[];
-    user: Profile | null;
+    user_id: string | null;
   }>({
     store: store.name,
     products: [],
-    user: null,
+    user_id: user ? user.id : null,
   });
 
   return (
@@ -58,13 +58,13 @@ export type DataContextType = {
   cart: {
     store: string;
     products: Product[];
-    user: Profile | null;
+    user_id: string | null;
   };
   setCart: React.Dispatch<
     React.SetStateAction<{
       store: string;
       products: Product[];
-      user: Profile | null;
+      user_id: string | null;
     }>
   >;
 };

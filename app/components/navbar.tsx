@@ -9,9 +9,9 @@ export default async function Navbar() {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="relative flex items-center justify-between max-w-xl mx-auto py-5 mb-2">
+    <div className="relative flex items-center justify-between max-w-xl mx-auto py-5 mb-2 px-3">
       {/* Left Content */}
-      <div className="text-center">
+      <div className="text-center invisible md:visible">
         <Link
           href="/trinkkasten"
           className="group link-underline-group"

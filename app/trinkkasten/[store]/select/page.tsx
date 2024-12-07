@@ -16,20 +16,20 @@ export default function TrinkkastenStoreSelectPage() {
   }
 
   const handleSelect = (profile: Profile) => {
-    setCart({ ...cart, user: profile });
+    setCart({ ...cart, user_id: profile.id });
     router.push(`/trinkkasten/${cart.store}/checkout`);
   };
 
   return (
     <div className="flex flex-col justify-center items-center gap-6">
       <p className="description">Who is paying?</p>
-      <div className="max-w-lg flex flex-wrap justify-center gap-4 -h-[50vh] overflow-y-auto">
+      <div className="max-w-lg flex flex-wrap justify-center gap-4 max-h-[50vh] overflow-y-auto">
         {profiles.map((profile) => (
           <div
             key={profile.id}
             onClick={() => handleSelect(profile)}
             className={`product-card ${
-              cart.user == profile ? 'selected' : ''
+              cart.user_id == profile.id ? 'selected' : ''
             }`}
           >
             {profile.first_name} {profile.last_name}
@@ -46,7 +46,7 @@ export default function TrinkkastenStoreSelectPage() {
         </button> */}
         <Link href={`/trinkkasten/${cart.store}/checkout`}>
           <button
-            className={`${cart.user === null ? 'disabled' : ''}`}
+            className={`${cart.user_id === null ? 'disabled' : ''}`}
           >
             Next
           </button>

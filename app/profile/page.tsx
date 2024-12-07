@@ -38,7 +38,9 @@ export default async function profilePage() {
               className="grid grid-cols-3 items-center justify-center gap-2"
             >
               <p>{balance.store}</p>
-              <p>{Amount(balance.total_amount)}</p>
+              <p className="px-3 text-right">
+                {Amount(balance.total_amount)}
+              </p>
               {balance.paypal && (
                 <a
                   href={'https://paypal.me/' + balance.paypal}
