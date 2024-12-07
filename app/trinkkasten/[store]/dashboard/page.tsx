@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
-import { Product, Store, Transaction } from '@/utils/definitions';
+import { useState, useEffect } from 'react';
+import { Product, Transaction } from '@/utils/definitions';
 import { createClient } from '@/utils/supabase/client';
 import { redirect, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -16,9 +16,7 @@ type Balance = {
 };
 
 export default function TrinkkastenStoreDashboard() {
-  const { user, store: initialStore } = useData() as DataContextType;
-
-  const [store, setStore] = useState<Store>(initialStore);
+  const { user, store } = useData() as DataContextType;
 
   if (!user || store.admin != user.id) redirect('/');
 
