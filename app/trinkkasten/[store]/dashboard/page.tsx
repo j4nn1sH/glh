@@ -261,6 +261,7 @@ export default function TrinkkastenStoreDashboard() {
 
   return (
     <div className="pb-8 max-w-3xl mx-auto px-2">
+      <p className="font-mono text-center mb-3">DASHBOARD</p>
       <div className="grid md:grid-cols-3 gap-3 max-w-3xl justify-center py-3">
         {/* Product List */}
         <div className="md:col-span-2 flex md:max-h-[20em] flex-wrap justify-center gap-4 overflow-y-auto max-h-[50vh]">
