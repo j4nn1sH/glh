@@ -1,7 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { Product, Profile, Store } from '@/utils/definitions';
 import { DataProvider } from './DataContext';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export default async function TrinkkastenStoreLayout({
