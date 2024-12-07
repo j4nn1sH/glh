@@ -39,11 +39,4 @@ type Item = {
   price: number;
 };
 
-type Balance = {
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  total_amount: number;
-};
-
-export type { Product, Profile, Store, Transaction, Balance };
+export type { Product, Profile, Store, Transaction };

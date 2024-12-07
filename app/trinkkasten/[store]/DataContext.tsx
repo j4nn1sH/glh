@@ -1,17 +1,20 @@
 'use client';
 
 import { Profile, Product, Store } from '@/utils/definitions';
+import { User } from '@supabase/supabase-js';
 
 import { createContext, useContext, useState } from 'react';
 
 const DataContext = createContext<DataContextType | null>(null);
 
 export function DataProvider({
+  user,
   store,
   products,
   profiles,
   children,
 }: {
+  user: User | null;
   store: Store;
   products: Product[];
   profiles: Profile[];
@@ -30,6 +33,7 @@ export function DataProvider({
   return (
     <DataContext.Provider
       value={{
+        user,
         store,
         products,
         profiles,
@@ -47,6 +51,7 @@ export function useData() {
 }
 
 export type DataContextType = {
+  user: User | null;
   store: Store;
   products: Product[];
   profiles: Profile[];

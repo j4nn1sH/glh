@@ -11,6 +11,13 @@ export default async function TrinkkastenStoreLayout({
 }) {
   const supabase = await createClient();
 
+  const {
+    error,
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (error || !user) console.log('Using application anomously');
+
   const { data: store } = await supabase
     .from('stores')
     .select('*')
@@ -37,6 +44,7 @@ export default async function TrinkkastenStoreLayout({
         {store!.name}
       </h1>
       <DataProvider
+        user={user}
         store={store!}
         products={products || []}
         profiles={profiles || []}

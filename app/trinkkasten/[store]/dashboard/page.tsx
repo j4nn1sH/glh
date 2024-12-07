@@ -1,19 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import {
-  Product,
-  Store,
-  Transaction,
-  Balance,
-} from '@/utils/definitions';
+import { useState, useEffect, useContext } from 'react';
+import { Product, Store, Transaction } from '@/utils/definitions';
 import { createClient } from '@/utils/supabase/client';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import Amount from '@/app/components/amount';
+import { DataContextType, useData } from '../DataContext';
+
+type Balance = {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  total_amount: number;
+};
 
 export default function TrinkkastenStoreDashboard() {
-  const [store, setStore] = useState<Store>();
+  const { user, store: initialStore } = useData() as DataContextType;
+
+  const [store, setStore] = useState<Store>(initialStore);
+
+  if (!user || store.admin != user.id) redirect('/');
 
   // Products
   const [products, setProducts] = useState<Product[]>([]);
@@ -42,38 +49,6 @@ export default function TrinkkastenStoreDashboard() {
     const init = async () => {
       const supabase = createClient();
 
-      // Fetch user
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        console.error('Error fetching user:', userError);
-        router.push('/unauthorized');
-        return;
-      }
-
-      // Fetch store
-      const { data: store, error: storeError } = await supabase
-        .from('stores')
-        .select('*')
-        .single();
-      if (storeError || !store) {
-        console.error('Error fetching store:', storeError);
-        router.push('/unauthorized');
-        return;
-      }
-
-      // Check admin privileges
-      if (user.id !== store.admin) {
-        router.push('/unauthorized');
-        return;
-      }
-      setStore(store);
-
-      // setPaypalForm(store.paypal_link);
-
       // Fetch products
       const { data: products, error: productsError } = await supabase
         .from('products')
@@ -91,11 +66,11 @@ export default function TrinkkastenStoreDashboard() {
         await supabase
           .from('transactions')
           .select(
-            'id, created_at, user (id, first_name, last_name), amount, items, store'
+            'id, created_at, user (id, first_name, last_name), amount, items, description, store'
           )
           .eq('store', store.name)
           .order('created_at', { ascending: false })
-          .limit(10)
+          .limit(30)
           .returns<Transaction[]>();
 
       if (transactionsError) {
@@ -109,7 +84,7 @@ export default function TrinkkastenStoreDashboard() {
 
       // Fetch balances
       const { data: balances, error: balancesError } =
-        await supabase.rpc('get_store_user_balances', {
+        await supabase.rpc('get_store_balances', {
           store_name: store.name,
         });
 
@@ -125,6 +100,20 @@ export default function TrinkkastenStoreDashboard() {
 
   // ACTIONS
   // Bind form values to selectedProduct
+  useEffect(() => {
+    if (selectedProduct) {
+      setProductForm({
+        name: selectedProduct.name,
+        price: selectedProduct.price.toFixed(2),
+      });
+    } else {
+      setProductForm({
+        name: '',
+        price: '',
+      });
+    }
+  }, [selectedProduct]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -155,7 +144,8 @@ export default function TrinkkastenStoreDashboard() {
       // Adapt current state to change
       const productsResponse = await supabase
         .from('products')
-        .select('*');
+        .select('*')
+        .eq('sold_at', store.name);
       if (productsResponse.error) {
         console.error(
           'Error refetching the products: ',
@@ -272,16 +262,16 @@ export default function TrinkkastenStoreDashboard() {
   };
 
   return (
-    <div className="pb-8">
+    <div className="pb-8 max-w-3xl mx-auto">
       <div className="grid md:grid-cols-3 gap-3 max-w-3xl justify-center py-3">
         {/* Product List */}
         <div className="md:col-span-2 flex md:max-h-[20em] flex-wrap justify-center gap-4 overflow-y-auto">
           {products.map((product) => (
             <div
               key={product.id}
-              className={`product-card bg-opacity-20 ${
+              className={`product-card bg-opacity-20 h-fit ${
                 product.id === selectedProduct?.id ? 'selected' : ''
-              } ${product.active ? 'bg-primary' : ''}`}
+              } ${product.active ? 'bg-green-500' : ''}`}
               onClick={() =>
                 product.id !== selectedProduct?.id
                   ? setSelectedProduct(product)
@@ -358,51 +348,60 @@ export default function TrinkkastenStoreDashboard() {
 
       <hr className="my-10 col-span-2" />
 
-      <div className="grid grid-cols-2">
-        <div>
-          <h3>Balances</h3>
-          <table className="table-auto border-separate border-spacing-x-2">
-            <tbody>
-              {balances.map((balance, index) => (
-                <tr
-                  key={index}
-                  onClick={() => {
-                    if (balance != selectedBalance) {
-                      setSelectedBalance(balance);
-                    } else {
-                      setSelectedBalance(null);
+      <div>
+        <h3>Balances</h3>
+        <p className="description">Click on a name to see more</p>
+        <div className="grid grid-cols-2 my-2">
+          <div>
+            <table className="table-auto border-separate border-spacing-x-2">
+              <tbody>
+                {balances.map((balance, index) => (
+                  <tr
+                    key={index}
+                    onClick={() =>
+                      balance != selectedBalance
+                        ? setSelectedBalance(balance)
+                        : setSelectedBalance(null)
                     }
-                  }}
-                  className="cursor-pointer"
-                >
-                  <td className="text-right">
-                    {Amount(balance.total_amount)}
-                  </td>
-                  <td
-                    className={
-                      balance == selectedBalance
-                        ? 'font-bold'
-                        : 'font-extralight'
-                    }
+                    className="cursor-pointer"
                   >
-                    {balance.first_name} {balance.last_name}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="mt-2 flex gap-2">
-            <input
-              id="transaction_amount"
-              name="amount"
-              type="text"
-              placeholder="Amount..."
-              value={amountForm}
-              onChange={handleInputChange}
-              required
-            />
-            <button onClick={handleAddTransaction}>Submit</button>
+                    <td className="text-right">
+                      {Amount(balance.total_amount)}
+                    </td>
+                    <td
+                      className={
+                        balance == selectedBalance
+                          ? 'font-bold'
+                          : 'font-extralight'
+                      }
+                    >
+                      {balance.first_name} {balance.last_name}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          {selectedBalance && (
+            <div>
+              <h4>
+                {selectedBalance.first_name}{' '}
+                {selectedBalance.last_name}
+              </h4>
+              <div className="mt-2 flex gap-2">
+                <input
+                  id="transaction_amount"
+                  name="amount"
+                  type="text"
+                  placeholder="Amount..."
+                  value={amountForm}
+                  onChange={handleInputChange}
+                  required
+                />
+                <button onClick={handleAddTransaction}>Submit</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

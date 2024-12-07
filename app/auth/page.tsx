@@ -42,15 +42,15 @@ function SignupForm() {
   return (
     <form className="grid grid-cols-2 gap-2">
       <input
-        id="firstname"
-        name="firstname"
+        id="first_name"
+        name="first_name"
         type="text"
         placeholder="First name..."
         required
       />
       <input
-        id="lastname"
-        name="lastname"
+        id="last_name"
+        name="last_name"
         type="text"
         placeholder="Last name..."
         required

@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default async function Trinkkasten() {
   const supabase = await createClient();
-  const { data } = await supabase.from('stores').select('*');
+  const { data } = await supabase.from('stores').select('name');
 
   return (
     <div className="flex flex-col items-center gap-4">
